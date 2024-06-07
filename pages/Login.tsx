@@ -12,7 +12,8 @@ export default function Login() {
     const [registerLastName, setRegisterLastName] = useState('');
     const [error, setError] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
-    const [accesstoken, setAccessToken] = useState({});
+    const [accesstoken, setAccessToken] = useState('');
+    const [refreshtoken, setRefreshToken] = useState('');
     
 
 
@@ -23,8 +24,10 @@ export default function Login() {
                 password: loginPassword
             });
             const token = response.data.access;
+            console.log(response.data)
+            const refresh = response.data.refresh;
 
-            handleSuccessfulLogin(token);
+            handleSuccessfulLogin(token,refresh);
             setAccessToken(token)
             console.log('token', accesstoken)
 
@@ -50,9 +53,10 @@ export default function Login() {
         }
     };
 
-    const handleSuccessfulLogin = (token:any) => {
+    const handleSuccessfulLogin = (token:any,refresh:any) => {
 
         localStorage.setItem('accessToken', token);
+        localStorage.setItem('refreshToken', refresh);
         console.log('Login successful. Token:', token);
         router.push('/Dashboard');
     };

@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import React, { useEffect, useState } from 'react';
+import AuthService from './api/AuthService';
 import CreateProject from './components/CreateProject';
 
 export default function Dashboard() {
@@ -10,6 +11,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchEnvelopes();
+        
     }, []); 
 
     const fetchEnvelopes = async () => {
@@ -28,7 +30,14 @@ export default function Dashboard() {
             setEnvelopes(response.data); // Assuming response.data is an array of envelopes
             
         } catch (error) {
-            console.error('Error fetching envelopes:', error);
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response?.status === 401) {
+                    window.location.href = '/'
+                } 
+            } else {
+                console.error('Non-Axios error:', error);
+            }
         }
     };
 
@@ -37,6 +46,7 @@ export default function Dashboard() {
         try {
             const accessToken = localStorage.getItem('accessToken');
             if (!accessToken) {
+                window.location.href = '/'
                 throw new Error('Access token not found.');
             }
 
@@ -61,54 +71,27 @@ export default function Dashboard() {
 
     console.log("Hello",envelopes)
     return (
-        <div className='bg-grey'>
+        <div className='bg-grey m-7'>
             <h1>Dashboard</h1>
-            {/* <form onSubmit={handleCreateEnvelope}>
-                <div>
-                    <label>
-                        Name:
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Amount:
-                        <input
-                            type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            required
-                        />
-                    </label>
-                </div>
-                <button type="submit">Create Envelope</button>
-            </form> */}
+
             <CreateProject fetch = {fetchEnvelopes} />
             <h2>Envelopes:</h2>
-            
             <div className="flex flex-wrap gap-4">
-                {envelopes.map((item:any, index:any) => (
-                <div className="card w-96 bg-primary text-primary-content ">
-                    <div className="card-body " key={index} >
-                        <h2 className="card-title">{item.name}</h2>
-                        <p>Budget: {item.amount}</p>
-                        <div className="card-actions justify-end">
-                        <button className="btn">Balance: {item.balance}</button>
+                {envelopes.slice(-4).map((item:any, index) => (
+                    <div className="card w-72 h-fit bg-primary text-primary-content" key={index}>
+                        <div className="card-body flex justify-between ">
+                            <div className=' flex flex-row justify-between'>
+                                <h2 className="card-title">{item.name}</h2>
+                                <h2 className="card-title">${item.amount}</h2>
+                            </div>
+                            <p className=' flex justify-end'>Balance: {item.balance}</p>
+                            <div className="card-actions">
+                                <button className="btn">Manage Expenses</button>
+                            </div>
                         </div>
                     </div>
-                </div>
                 ))}
             </div>
-            
-
-
-
         </div>
     );
 };
-
